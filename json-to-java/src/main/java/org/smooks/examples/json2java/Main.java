@@ -113,6 +113,7 @@ public class Main {
     private static byte[] readInputMessage() {
         try {
             return StreamUtils.readStream(new FileInputStream("input-message.jsn"));
+            // return StreamUtils.readStream(new FileInputStream("json-to-java/input-message.jsn"));
         } catch (IOException e) {
             e.printStackTrace();
             return "<no-message/>".getBytes();
