@@ -51,10 +51,10 @@
         <jb:value property="state" data="#/state" />
     </jb:bean>
 
-	<!--
-	Create an ArrayList when we visit the start of the <order> element.
-	The "orderItem" beans are wired into this list and this list is wired into the "order" bean.
-	 -->
+    <!--
+    Create an ArrayList when we visit the start of the <order> element.
+    The "orderItem" beans are wired into this list and this list is wired into the "order" bean.
+     -->
     <jb:bean beanId="orderItemList" class="java.util.ArrayList" createOnElement="Order">
         <jb:wiring beanIdRef="orderItem" />
     </jb:bean>
