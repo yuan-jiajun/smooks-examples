@@ -48,16 +48,8 @@ import java.util.List;
  * @author <a href="mailto:tom.fennelly@gmail.com">tom.fennelly@gmail.com</a>
  */
 public class Order {
-    private Header header;
+    private String date;
     private List<OrderItem> orderItems;
-
-    public Header getHeader() {
-        return header;
-    }
-
-    public void setHeader(Header header) {
-        this.header = header;
-    }
 
     public List<OrderItem> getOrderItems() {
         return orderItems;

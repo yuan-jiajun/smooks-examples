@@ -78,7 +78,7 @@
     As soon as this list is created it will be set on this bean instance.
     -->
     <jb:bean class="org.smooks.examples.json2java.model.Order" beanId="order" createOnElement="order">
-    	<jb:wiring property="header" beanIdRef="header"/>
+    	<jb:wiring property="headerJson" beanIdRef="header"/>
     	<jb:wiring property="orderItems" beanIdRef="orderItems"/>
     </jb:bean>
 

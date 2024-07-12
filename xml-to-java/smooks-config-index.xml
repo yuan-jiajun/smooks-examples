@@ -1,0 +1,33 @@
+<?xml version="1.0"?>
+<smooks-resource-list xmlns="https://www.smooks.org/xsd/smooks-2.0.xsd"
+                      xmlns:jb="https://www.smooks.org/xsd/smooks/javabean-1.6.xsd">
+
+    <!--
+    Create an "example.beans.Order" bean instance when we visit the start of the <order> element.
+    Assign the new bean instance to the beanId of "order".
+    Wire in the "header" and "orderItems" beans.
+    -->
+    <jb:bean beanId="order" class="java.util.LinkedHashMap" createOnElement="order">
+        <jb:value property="date" data="#/date"/>
+        <!--        <jb:wiring property="orderItems" beanIdRef="orderItems"/>-->
+        <jb:wiring property="orderItems" beanIdRef="orderItem"/>
+    </jb:bean>
+
+    <!--
+    Create an "example.beans.OrderItem" bean instance when we visit the start of the <order-item> element.
+    This bean is wired into the "orderItems" ArrayList bean.
+    -->
+    <!--    index[0] size=0-->
+    <!--    index[1] size=0-->
+    <!--    index[2] size=0-->
+    <jb:bean beanId="orderItem" class="java.util.LinkedHashMap" createOnElement="order/order-items">
+        <jb:value property="element" decoder="Long" data="order/order-items/element[2]"/>
+    </jb:bean>
+
+
+    <!--    [1]和不写都是最后一个,其他index 一个都没有-->
+    <jb:bean beanId="orderItems" class="java.util.ArrayList" createOnElement="order/order-items">
+        <jb:wiring beanIdRef="orderItem"/>
+    </jb:bean>
+
+</smooks-resource-list>

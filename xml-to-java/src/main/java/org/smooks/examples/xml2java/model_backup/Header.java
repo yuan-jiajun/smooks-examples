@@ -40,20 +40,39 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  * =========================LICENSE_END==================================
  */
-package org.smooks.examples.xml2java.model;
+package org.smooks.examples.xml2java.model_backup;
+
+import java.util.Date;
 
 /**
  * @author <a href="mailto:tom.fennelly@gmail.com">tom.fennelly@gmail.com</a>
  */
-public class OrderItem {
-    private Long productId;
+public class Header {
+    private Date date;
+    private Long customerNumber;
+    private String customerName;
 
-    public Long getProductId() {
-        return productId;
+    public Date getDate() {
+        return date;
     }
 
-    public void setProductId(Long productId) {
-        this.productId = productId;
+    public void setDate(Date date) {
+        this.date = date;
     }
 
+    public Long getCustomerNumber() {
+        return customerNumber;
+    }
+
+    public void setCustomerNumber(Long customerNumber) {
+        this.customerNumber = customerNumber;
+    }
+
+    public String getCustomerName() {
+        return customerName;
+    }
+
+    public void setCustomerName(String customerName) {
+        this.customerName = customerName;
+    }
 }

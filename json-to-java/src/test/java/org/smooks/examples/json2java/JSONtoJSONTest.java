@@ -1,6 +1,6 @@
 /*-
  * ========================LICENSE_START=================================
- * Smooks Example :: XML-to-Java
+ * Smooks Example :: JSON-to-Java
  * %%
  * Copyright (C) 2020 Smooks
  * %%
@@ -41,39 +41,58 @@
  * =========================LICENSE_END==================================
  */
 
-package org.smooks.examples.xml2java;
+package org.smooks.examples.json2java;
 
-import org.smooks.Smooks;
-import org.smooks.api.ExecutionContext;
-import org.smooks.api.SmooksException;
-import org.smooks.engine.DefaultApplicationContextBuilder;
-import org.smooks.engine.report.HtmlReportGenerator;
-import org.smooks.examples.xml2java.model.Order;
-import org.smooks.examples.xml2java.model.OrderItem;
-import org.smooks.support.StreamUtils;
-import org.smooks.io.payload.JavaResult;
-import org.xml.sax.SAXException;
-
-import javax.xml.transform.stream.StreamSource;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 
 import java.io.ByteArrayInputStream;
 import java.io.FileInputStream;
 import java.io.IOException;
 
+import javax.xml.transform.stream.StreamSource;
+
+import com.alibaba.fastjson.JSON;
+import org.apache.logging.log4j.core.util.JsonUtils;
+import org.junit.jupiter.api.Test;
+import org.smooks.Smooks;
+import org.smooks.api.ExecutionContext;
+import org.smooks.api.SmooksException;
+import org.smooks.engine.DefaultApplicationContextBuilder;
+import org.smooks.engine.report.HtmlReportGenerator;
+import org.smooks.examples.json2java.model.Order;
+import org.smooks.io.payload.JavaResult;
+import org.smooks.support.StreamUtils;
+import org.xml.sax.SAXException;
+import org.xmlunit.builder.DiffBuilder;
+
 /**
- * Simple example main class.
- *
  * @author <a href="mailto:tom.fennelly@gmail.com">tom.fennelly@gmail.com</a>
  */
-public class Main {
+public class JSONtoJSONTest {
 
     private static byte[] messageIn = readInputMessage();
+
+    @Test
+    public void test() throws IOException, SAXException {
+        String expected = StreamUtils.readStreamAsString(getClass().getResourceAsStream("expected.xml"), "UTF-8");
+
+        Order order = runSmooks();
+        String json = JSON.toJSON(order.getOrderItems()).toString();
+
+        int length = json.length();
+        for (int i = 0; i < length; i++) {
+            System.out.println("\n" + json.substring(i, Math.min(i + 100, length)));
+            i += 100;
+        }
+    }
 
     protected static Order runSmooks() throws IOException, SAXException, SmooksException {
 
         // Instantiate Smooks with the config...
-        Smooks smooks = new Smooks(new DefaultApplicationContextBuilder().withClassLoader(Main.class.getClassLoader()).build());
-        smooks.addResourceConfigs("smooks-config-index.xml");
+        Smooks smooks = new Smooks(new DefaultApplicationContextBuilder()
+                                       .withClassLoader(JSONtoJSONTest.class.getClassLoader())
+                                       .build());
+        smooks.addResourceConfigs("smooks-config.xml");
 
         try {
             // Create an exec context - no profiles....
@@ -88,25 +107,16 @@ public class Main {
             // Filter the input message to extract, using the execution context...
             smooks.filterSource(executionContext, new StreamSource(new ByteArrayInputStream(messageIn)), result);
 
-            Order order = (Order) result.getBean("order");
-            return order;
+            return (Order) result.getBean("order");
         } finally {
             smooks.close();
         }
     }
 
-    public static void main(String[] args) throws IOException, SAXException, SmooksException {
-        System.out.println("\n\n");
-        System.out.println("==============Message In==============");
-        System.out.println(new String(messageIn));
-        System.out.println("======================================\n");
-
-        Order order = Main.runSmooks();
-    }
-
     private static byte[] readInputMessage() {
         try {
-            return StreamUtils.readStream(new FileInputStream("input-message-index.xml"));
+            return StreamUtils.readStream(new FileInputStream("input-message.jsn"));
+            // return StreamUtils.readStream(new FileInputStream("json-to-java/input-message.jsn"));
         } catch (IOException e) {
             e.printStackTrace();
             return "<no-message/>".getBytes();
