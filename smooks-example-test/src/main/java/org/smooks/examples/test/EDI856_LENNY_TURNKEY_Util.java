@@ -69,8 +69,10 @@ public class EDI856_LENNY_TURNKEY_Util {
             cartonUnit.put("cartonUnitLevel", levelNumber++);
             cartonUnit.put("handlingUnitId", cartonNo);
             cartonUnit.put("handlingUnitType", "Carton");
-            cartonUnit.put("parentHandlingUnitLevel", cartonParentHandleUnitId != null ? cartonParentHandleUnitId : levelNumber - 1);
-            cartonUnit.put("parentHandlingUnitId", palletId);
+            cartonUnit.put("parentHandlingUnitLevel", cartonParentHandleUnitId != null ? cartonParentHandleUnitId : levelNumber - 2);
+            if (StringUtils.isNotBlank(palletId)) {
+                cartonUnit.put("parentHandlingUnitId", palletId);
+            }
 
             Map grossWeight = new LinkedHashMap();
             Map grossWeightValue = new LinkedHashMap();
