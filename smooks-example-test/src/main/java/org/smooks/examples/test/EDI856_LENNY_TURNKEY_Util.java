@@ -26,7 +26,7 @@ public class EDI856_LENNY_TURNKEY_Util {
             return result;
         }
 
-        Integer levelNumber = 3;
+        Integer levelNumber = 2;
         String targetWeightUnit = "Kg";
         for (Map detail : details) {
 
@@ -52,7 +52,7 @@ public class EDI856_LENNY_TURNKEY_Util {
                 if (!hasRecord) {
                     Map palletUnit = new LinkedHashMap();
                     units.add(palletUnit);
-                    palletUnit.put("handlingUnitLevel", levelNumber++);
+                    palletUnit.put("handlingUnitLevel", ++levelNumber);
                     palletUnit.put("parentHandlingUnitLevel", 2);
                     palletUnit.put("handlingUnitId", palletId);
                     palletUnit.put("handlingUnitType", "Pallet");
@@ -66,10 +66,10 @@ public class EDI856_LENNY_TURNKEY_Util {
                 }
             }
 
-            cartonUnit.put("cartonUnitLevel", levelNumber++);
+            cartonUnit.put("cartonUnitLevel", ++levelNumber);
             cartonUnit.put("handlingUnitId", cartonNo);
             cartonUnit.put("handlingUnitType", "Carton");
-            cartonUnit.put("parentHandlingUnitLevel", cartonParentHandleUnitId != null ? cartonParentHandleUnitId : levelNumber - 2);
+            cartonUnit.put("parentHandlingUnitLevel", cartonParentHandleUnitId != null ? cartonParentHandleUnitId : levelNumber - 1);
             if (StringUtils.isNotBlank(palletId)) {
                 cartonUnit.put("parentHandlingUnitId", palletId);
             }
@@ -87,7 +87,7 @@ public class EDI856_LENNY_TURNKEY_Util {
                 continue;
             }
 
-            Integer cartonHandleUnitLevel = levelNumber - 1;
+            Integer cartonHandleUnitLevel = levelNumber;
             for (Object eachItem : items) {
                 Map item = (Map) eachItem;
 
@@ -136,7 +136,7 @@ public class EDI856_LENNY_TURNKEY_Util {
 
 
                 shipmentDetail.put("handlingUnitLevel", cartonHandleUnitLevel);
-                shipmentDetail.put("itemLevelNumber", levelNumber++);
+                shipmentDetail.put("itemLevelNumber", ++levelNumber);
                 System.out.println();
             }
         }
