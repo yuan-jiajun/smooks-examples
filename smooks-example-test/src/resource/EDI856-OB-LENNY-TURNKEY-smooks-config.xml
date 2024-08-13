@@ -1,0 +1,237 @@
+<?xml version="1.0"?>
+<smooks-resource-list
+        xmlns="https://www.smooks.org/xsd/smooks-2.0.xsd"
+        xmlns:json="https://www.smooks.org/xsd/smooks/json-1.3.xsd"
+        xmlns:jb="https://www.smooks.org/xsd/smooks/javabean-1.6.xsd">
+
+    <json:reader rootName="data" keyWhitspaceReplacement="-" arrayElementName="element">
+        <json:keyMap>
+            <json:key from="date&amp;time" to="date-and-time"/>
+        </json:keyMap>
+    </json:reader>
+
+    <jb:bean beanId="data" class="java.util.LinkedHashMap" createOnElement="data">
+        <jb:wiring beanIdRef="advanceShipmentNotice"/>
+        <jb:expression property="requestId" execOnElement="data">
+            import org.slf4j.MDC;
+            return MDC.get("x-request-id");
+        </jb:expression>
+    </jb:bean>
+
+    <jb:bean beanId="bizKeyList" class="java.util.ArrayList" createOnElement="data" retain="true">
+    </jb:bean>
+
+    <jb:bean beanId="detailsMap" class="java.util.LinkedHashMap" createOnElement="data" retain="true">
+        <jb:expression property="unitDetail2" execOnElement="data">
+            import com.synnex.hyve.edi.translator.util.combine.EDI856_LENNY_TURNKEY_Util;
+            return EDI856_LENNY_TURNKEY_Util.processDetails(details,headerSpecPathValueMapping);
+        </jb:expression>
+        <!--        if item has pallet & carton, record 2 unit under level 3 and 4, pallet grossWeight record as zero-->
+        <!--        if item only under carton without pallet, only record carton as level 3-->
+        <!--        each carton only appear once under details element-->
+        <!--        notice: due to various cartons under one pallet, so duplicate pallet need to distinct-->
+        <jb:expression property="unitDetails" execOnElement="data">
+
+        </jb:expression>
+    </jb:bean>
+
+    <jb:bean beanId="advanceShipmentNotice" class="java.util.LinkedHashMap" createOnElement="data">
+        <jb:value property="shipmentNumber" data="#/header/asnNo"/>
+        <jb:wiring beanIdRef="trackingNumber"/>
+        <jb:wiring beanIdRef="incoterms"/>
+        <jb:value property="serviceLevelCode" data="#/header/ediServiceLevel"/>
+        <jb:wiring beanIdRef="transportationMethod"/>
+        <jb:expression property="expectedDeliveryDate" execOnElement="data">
+            import com.synnex.hyve.edi.translator.util.ListUtil;
+            import com.synnex.hyve.edi.translator.util.SmooksDateUtil;
+
+            String date = (String)ListUtil.getFirstObjFromNestedMapList(
+            details, "items", "requestDeliveryDate");
+            return SmooksDateUtil.date2UTCYearMonthDayMap(date);
+        </jb:expression>
+        <jb:expression property="shipByDate" execOnElement="data">
+            import com.synnex.hyve.edi.translator.util.SmooksDateUtil;
+            String date = headerSpecPathValueMapping.get("shipDate");
+            return SmooksDateUtil.date2UTCYearMonthDayMap(date);
+        </jb:expression>
+        <jb:wiring beanIdRef="carrierId"/>
+        <jb:wiring beanIdRef="supplierIdentity"/>
+        <jb:wiring beanIdRef="shipToLocation"/>
+        <jb:wiring beanIdRef="shipperAddress"/>
+        <jb:wiring beanIdRef="recipientAddress"/>
+        <jb:expression property="transactionDate" execOnElement="data">
+            import com.synnex.hyve.edi.translator.util.SmooksDateUtil;
+            return SmooksDateUtil.date2UTCYearMonthDayMap(SmooksDateUtil.getNowUTCZoneDate());
+        </jb:expression>
+
+        <jb:expression property="handlingUnitDetails" execOnElement="data">
+            return detailsMap.get("unitDetails");
+        </jb:expression>
+
+        <!--        // todo Jason: 8/13/2024 level no-->
+        <!--        // todo Jason: 8/13/2024 serialItems mapping-->
+        <jb:expression property="purchaseOrderLines" execOnElement="data">
+
+        </jb:expression>
+    </jb:bean>
+
+    <jb:bean beanId="trackingNumber" class="java.util.LinkedHashMap" createOnElement="data">
+        <jb:expression property="masterBillOfLadingNumber" execOnElement="data">
+            if(details != null &amp;&amp; details.size != 0) {
+            return details.get(0).get("trackNo");
+            }
+        </jb:expression>
+    </jb:bean>
+
+    <jb:bean beanId="headerSpecPathValueMapping" class="java.util.LinkedHashMap" createOnElement="data/header"
+             retain="true">
+        <jb:value property="shipDate" data="#/shipDate"/>
+        <jb:value property="endUserPo" data="#/endUserPo"/>
+    </jb:bean>
+
+    <jb:bean beanId="fetchDBData" class="java.util.LinkedHashMap" createOnElement="data" retain="true">
+        <jb:expression property="kvMap" execOnElement="data">
+            import com.synnex.hyve.edi.translator.util.FetchDBDataUtil;
+            String poNo = headerSpecPathValueMapping.get("endUserPo");
+            String condition = "trading_partner = 'LENNY' and direction = 'INBOUND' and trans_code in (850, 860)
+            and b2b_trans.program = 'LennyTurnkey' and extension_map['poNo'] = '" + poNo +
+            "' order by entry_datetime desc limit 1";
+
+            return FetchDBDataUtil.fetchMapData("b2b_trans", "extension_map", condition);
+        </jb:expression>
+    </jb:bean>
+
+    <jb:bean beanId="details" class="java.util.ArrayList" createOnElement="data/details" retain="true">
+        <jb:wiring beanIdRef="detail"/>
+    </jb:bean>
+
+    <jb:bean beanId="detail" class="java.util.LinkedHashMap" createOnElement="data/details/element">
+        <jb:value property="trackNo" data="#/trackNo"/>
+        <jb:wiring beanIdRef="items"/>
+        <jb:value property="palletId" data="#/palletId"/>
+        <jb:value property="cartonNo" data="#/cartonNo"/>
+        <jb:value property="cartonGrossWeight" data="#/cartonGrossWeight"/>
+        <jb:value property="cartonActualWeight" data="#/cartonActualWeight"/>
+        <jb:value property="cartonHeight" data="#/cartonHeight"/>
+        <jb:value property="cartonLength" data="#/cartonLength"/>
+        <jb:value property="cartonWidth" data="#/cartonWidth"/>
+        <jb:value property="cartonWeightUnit" data="#/cartonWeightUnit"/>
+        <jb:value property="cartonLengthUnit" data="#/cartonLengthUnit"/>
+        <jb:value property="cartonUccNo" data="#/cartonUccNo"/>
+        <jb:value property="palletUccNo" data="#/palletUccNo"/>
+    </jb:bean>
+
+    <jb:bean beanId="items" class="java.util.ArrayList" createOnElement="data/details/element/items">
+        <jb:wiring beanIdRef="item"/>
+    </jb:bean>
+
+    <jb:bean beanId="item" class="java.util.LinkedHashMap"
+             createOnElement="data/details/element/items/element">
+        <jb:value property="cartonNo" data="#/cartonNo"/>
+        <jb:value property="palletId" data="#/palletId"/>
+        <jb:value property="cartonLineNo" data="#/cartonLineNo"/>
+        <jb:value property="custPartNo" data="#/custPartNo"/>
+        <jb:value property="mfgPartNo" data="#/mfgPartNo"/>
+        <jb:value property="buyerPartNo" data="#/buyerPartNo"/>
+        <jb:value property="vendorPartNo" data="#/vendorPartNo"/>
+        <jb:value property="hyvePartNo" data="#/hyvePartNo"/>
+        <jb:value property="cartonItemQty" data="#/cartonItemQty"/>
+        <jb:value property="originalCountry" data="#/originalCountry"/>
+        <jb:value property="skuNo" data="#/skuNo"/>
+        <jb:wiring beanIdRef="serialInfos"/>
+        <jb:value property="custPoLineNo" data="#/custPoLineNo"/>
+        <jb:value property="shortDesc" data="#/shortDesc"/>
+        <jb:value property="poQty" data="#/poQty"/>
+        <jb:value property="upcCode" data="#/upcCode"/>
+        <jb:value property="requestDeliveryDate" data="#/requestDeliveryDate"/>
+    </jb:bean>
+
+    <jb:bean beanId="serialInfos" class="java.util.ArrayList"
+             createOnElement="data/details/element/items/element/serialInfos">
+        <jb:wiring beanIdRef="serialInfo"/>
+    </jb:bean>
+
+    <jb:bean beanId="serialInfo" class="java.util.LinkedHashMap"
+             createOnElement="data/details/element/items/element/serialInfos/element">
+    </jb:bean>
+
+    <jb:bean beanId="incoterms" class="java.util.LinkedHashMap" createOnElement="data">
+        <jb:expression property="code" execOnElement="data">
+            return fetchDBData.get("kvMap").get("incoTermsCode");
+        </jb:expression>
+    </jb:bean>
+
+    <jb:bean beanId="transportationMethod" class="java.util.LinkedHashMap"
+             createOnElement="data/header/modeOfTransport">
+        <jb:value property="ansiX12Code" data="#" default="null"/>
+    </jb:bean>
+
+    <jb:bean beanId="carrierId" class="java.util.LinkedHashMap" createOnElement="data/header/scac">
+        <jb:value property="genericCode" data="#" default="null"/>
+    </jb:bean>
+
+    <jb:bean beanId="supplierIdentity" class="java.util.LinkedHashMap" createOnElement="data">
+        <jb:expression property="partner" execOnElement="data">
+            return fetchDBData.get("kvMap").get("supplierPartnerName");
+        </jb:expression>
+        <jb:expression property="supplierSiteId" execOnElement="data">
+            return fetchDBData.get("kvMap").get("supplierPartnerCode");
+        </jb:expression>
+    </jb:bean>
+
+    <jb:bean beanId="shipToLocation" class="java.util.LinkedHashMap" createOnElement="data">
+        <jb:wiring beanIdRef="googleLocation"/>
+    </jb:bean>
+
+    <jb:bean beanId="googleLocation" class="java.util.LinkedHashMap" createOnElement="data">
+        <jb:expression property="locationCode" execOnElement="data">
+            return fetchDBData.get("kvMap").get("shipToLocationCode");
+        </jb:expression>
+    </jb:bean>
+
+    <jb:bean beanId="shipperAddress" class="java.util.LinkedHashMap" createOnElement="data">
+        <jb:wiring property="postalAddress" beanIdRef="shipperAddress_postalAddress"/>
+    </jb:bean>
+
+    <jb:bean beanId="shipperAddress_postalAddress" class="java.util.LinkedHashMap" createOnElement="data/header">
+        <jb:value property="regionCode" data="#/countryCode"/>
+        <jb:value property="postalCode" data="#/locZip"/>
+        <jb:value property="locality" data="#/locCity"/>
+        <jb:expression property="addressLines" execOnElement="data/header">
+            import java.util.Collections;
+            return Collections.singletonList(shipperAddress_postalAddress_addressLine.get("locAddr"));
+        </jb:expression>
+        <jb:value property="organization" data="#/locName"/>
+    </jb:bean>
+
+    <jb:bean beanId="shipperAddress_postalAddress_addressLine" class="java.util.LinkedHashMap"
+             createOnElement="data/header">
+        <jb:value property="locAddr" data="#/locAddr"/>
+    </jb:bean>
+
+
+    <jb:bean beanId="recipientAddress" class="java.util.LinkedHashMap" createOnElement="data">
+        <jb:wiring property="postalAddress" beanIdRef="recipientAddress_postalAddress"/>
+    </jb:bean>
+
+    <jb:bean beanId="recipientAddress_postalAddress" class="java.util.LinkedHashMap" createOnElement="data/header">
+        <jb:value property="regionCode" data="#/shipToCountry"/>
+        <jb:value property="postalCode" data="#/shipToZip"/>
+        <jb:value property="locality" data="#/shipToCity"/>
+        <!--        // todo Jason: 8/13/2024  // extra header.extra.shipToAddr3  from 850 need enhence-->
+        <jb:expression property="addressLines" execOnElement="data/header">
+            import com.google.common.collect.Lists;
+            String shipToAddr = recipientAddress_postalAddress_addressLine.get("shipToAddr");
+            String shipToAddr2 = recipientAddress_postalAddress_addressLine.get("shipToAddr2");
+            return Lists.newArrayList(shipToAddr, shipToAddr2);
+        </jb:expression>
+        <jb:value property="organization" data="#/shipToName"/>
+    </jb:bean>
+
+    <jb:bean beanId="recipientAddress_postalAddress_addressLine" class="java.util.LinkedHashMap"
+             createOnElement="data/header">
+        <jb:value property="shipToAddr" data="#/shipToAddr"/>
+        <jb:value property="shipToAddr2" data="#/shipToAddr2"/>
+    </jb:bean>
+
+</smooks-resource-list>
