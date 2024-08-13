@@ -1,3 +1,5 @@
+package org.smooks.examples.test;
+
 import org.smooks.Smooks;
 import org.smooks.api.ExecutionContext;
 import org.smooks.api.SmooksException;
@@ -18,15 +20,15 @@ public class SmooksTransform {
 
     private final Smooks smooks;
 
-    protected SmooksTransform() throws IOException, SAXException {
+    public SmooksTransform() throws IOException, SAXException {
         // Instantiate Smooks with the config...
         smooks = new Smooks(new DefaultApplicationContextBuilder().withClassLoader(this.getClass().getClassLoader()).build());
-        smooks.addResourceConfigs("/Users/yuan/code/smooks-examples/smooks-example-test/src/resource/EDI856-OB-LENNY-TURNKEY-smooks-config.xml");
+        smooks.addResourceConfigs("smooks-example-test/EDI856-OB-LENNY-TURNKEY-smooks-config.xml");
     }
 
     private static byte[] readInputMessage() {
         try {
-            return StreamUtils.readStream(Files.newInputStream(Paths.get("/Users/yuan/code/smooks-examples/smooks-example-test/src/resource/EDI856-OB-LENNY-TURNKEY-test-input.json")));
+            return StreamUtils.readStream(Files.newInputStream(Paths.get("smooks-example-test/EDI856-OB-LENNY-TURNKEY-test-input.json")));
         } catch (IOException e) {
             e.printStackTrace();
             return "<no-message/>".getBytes();

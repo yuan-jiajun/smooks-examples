@@ -1,0 +1,87 @@
+<?xml version="1.0"?>
+<smooks-resource-list
+        xmlns="https://www.smooks.org/xsd/smooks-2.0.xsd"
+        xmlns:json="https://www.smooks.org/xsd/smooks/json-1.3.xsd"
+        xmlns:jb="https://www.smooks.org/xsd/smooks/javabean-1.6.xsd">
+
+    <json:reader rootName="data" keyWhitspaceReplacement="-" arrayElementName="element">
+        <json:keyMap>
+            <json:key from="date&amp;time" to="date-and-time"/>
+        </json:keyMap>
+    </json:reader>
+
+    <jb:bean beanId="data" class="java.util.LinkedHashMap" createOnElement="data">
+        <jb:wiring beanIdRef="advanceShipmentNotice"/>
+        <jb:expression property="requestId" execOnElement="data">
+            import org.slf4j.MDC;
+            return MDC.get("x-request-id");
+        </jb:expression>
+    </jb:bean>
+
+
+    <jb:bean beanId="detailsMap" class="java.util.LinkedHashMap" createOnElement="data" retain="true">
+        <jb:expression property="unitDetail2" execOnElement="data">
+            import org.smooks.examples.test.EDI856_LENNY_TURNKEY_Util;
+            return EDI856_LENNY_TURNKEY_Util.processDetails(details,headerSpecPathValueMapping);
+        </jb:expression>
+        <!--        if item has pallet & carton, record 2 unit under level 3 and 4, pallet grossWeight record as zero-->
+        <!--        if item only under carton without pallet, only record carton as level 3-->
+        <!--        each carton only appear once under details element-->
+        <!--        notice: due to various cartons under one pallet, so duplicate pallet need to distinct-->
+        <jb:expression property="unitDetails" execOnElement="data">
+
+        </jb:expression>
+    </jb:bean>
+
+    <jb:bean beanId="headerSpecPathValueMapping" class="java.util.LinkedHashMap" createOnElement="data/header"
+             retain="true">
+        <jb:value property="shipDate" data="#/shipDate"/>
+        <jb:value property="endUserPo" data="#/endUserPo"/>
+    </jb:bean>
+
+    <jb:bean beanId="details" class="java.util.ArrayList" createOnElement="data/details" retain="true">
+        <jb:wiring beanIdRef="detail"/>
+    </jb:bean>
+
+    <jb:bean beanId="detail" class="java.util.LinkedHashMap" createOnElement="data/details/element">
+        <jb:value property="trackNo" data="#/trackNo"/>
+        <jb:wiring beanIdRef="items"/>
+        <jb:value property="palletId" data="#/palletId"/>
+        <jb:value property="cartonNo" data="#/cartonNo"/>
+        <jb:value property="cartonGrossWeight" data="#/cartonGrossWeight"/>
+        <jb:value property="cartonActualWeight" data="#/cartonActualWeight"/>
+        <jb:value property="cartonHeight" data="#/cartonHeight"/>
+        <jb:value property="cartonLength" data="#/cartonLength"/>
+        <jb:value property="cartonWidth" data="#/cartonWidth"/>
+        <jb:value property="cartonWeightUnit" data="#/cartonWeightUnit"/>
+        <jb:value property="cartonLengthUnit" data="#/cartonLengthUnit"/>
+        <jb:value property="cartonUccNo" data="#/cartonUccNo"/>
+        <jb:value property="palletUccNo" data="#/palletUccNo"/>
+    </jb:bean>
+
+    <jb:bean beanId="items" class="java.util.ArrayList" createOnElement="data/details/element/items">
+        <jb:wiring beanIdRef="item"/>
+    </jb:bean>
+
+    <jb:bean beanId="item" class="java.util.LinkedHashMap"
+             createOnElement="data/details/element/items/element">
+        <jb:value property="cartonNo" data="#/cartonNo"/>
+        <jb:value property="palletId" data="#/palletId"/>
+        <jb:value property="cartonLineNo" data="#/cartonLineNo"/>
+        <jb:value property="custPartNo" data="#/custPartNo"/>
+        <jb:value property="mfgPartNo" data="#/mfgPartNo"/>
+        <jb:value property="buyerPartNo" data="#/buyerPartNo"/>
+        <jb:value property="vendorPartNo" data="#/vendorPartNo"/>
+        <jb:value property="hyvePartNo" data="#/hyvePartNo"/>
+        <jb:value property="cartonItemQty" data="#/cartonItemQty"/>
+        <jb:value property="originalCountry" data="#/originalCountry"/>
+        <jb:value property="skuNo" data="#/skuNo"/>
+        <jb:wiring beanIdRef="serialInfos"/>
+        <jb:value property="custPoLineNo" data="#/custPoLineNo"/>
+        <jb:value property="shortDesc" data="#/shortDesc"/>
+        <jb:value property="poQty" data="#/poQty"/>
+        <jb:value property="upcCode" data="#/upcCode"/>
+        <jb:value property="requestDeliveryDate" data="#/requestDeliveryDate"/>
+    </jb:bean>
+
+</smooks-resource-list>
