@@ -4,4 +4,19 @@
         <element>111</element>
         <element>222</element>
     </order-items>
+    <supplier>
+        <partnerCode>1000052136</partnerCode>
+        <partnerName>FLEXTRONICS INTERNATIONAL EUROPE BV</partnerName>
+        <partnerAddress>
+            <regionCode>NL</regionCode>
+            <postalCode>5807 GA</postalCode>
+            <administrativeArea>06</administrativeArea>
+            <locality>Oostrum Lb</locality>
+            <addressLines>
+                <element>10-14 Nobelstr</element>
+                <element>10-14 Nobelstr222</element>
+                <element>10-14 Nobelstr333</element>
+            </addressLines>
+        </partnerAddress>
+    </supplier>
 </order>

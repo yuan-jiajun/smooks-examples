@@ -10,8 +10,24 @@
     <jb:bean beanId="order" class="java.util.LinkedHashMap" createOnElement="order">
         <jb:value property="date" data="#/date"/>
         <!--        <jb:wiring property="orderItems" beanIdRef="orderItems"/>-->
-        <jb:wiring property="orderItems" beanIdRef="orderItem"/>
+        <!--        <jb:wiring property="orderItems" beanIdRef="orderItem"/>-->
+        <!--        <jb:expression property="orderItem" execOnElement="order">-->
+        <!--            return orderItemBean.get("element");-->
+        <!--        </jb:expression>-->
+        <jb:expression property="orderItem" execOnElement="order">
+            return orderItemsBean.get(0);
+        </jb:expression>
     </jb:bean>
+
+    <!--    [1]和不写都是最后一个,其他index 一个都没有-->
+    <jb:bean beanId="orderItemsBean" class="java.util.ArrayList" createOnElement="order/order-items/*" retain="true">
+        <jb:wiring beanIdRef="orderItemBean"/>
+    </jb:bean>
+
+    <jb:bean beanId="orderItemBean" class="java.util.LinkedHashMap" createOnElement="order/order-items" retain="true">
+        <jb:value property="element" data="#/element[1]"/>
+    </jb:bean>
+
 
     <!--
     Create an "example.beans.OrderItem" bean instance when we visit the start of the <order-item> element.
@@ -20,14 +36,9 @@
     <!--    index[0] size=0-->
     <!--    index[1] size=0-->
     <!--    index[2] size=0-->
-    <jb:bean beanId="orderItem" class="java.util.LinkedHashMap" createOnElement="order/order-items">
-        <jb:value property="element" decoder="Long" data="order/order-items/element[2]"/>
-    </jb:bean>
+    <!--    <jb:bean beanId="orderItemBean" class="java.util.LinkedHashMap" createOnElement="order/order-items" retain="true">-->
+    <!--        <jb:value property="element" decoder="Long" data="order/order-items/element[1]"/>-->
+    <!--    </jb:bean>-->
 
-
-    <!--    [1]和不写都是最后一个,其他index 一个都没有-->
-    <jb:bean beanId="orderItems" class="java.util.ArrayList" createOnElement="order/order-items">
-        <jb:wiring beanIdRef="orderItem"/>
-    </jb:bean>
 
 </smooks-resource-list>
