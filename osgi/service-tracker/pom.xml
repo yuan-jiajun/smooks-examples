@@ -7,7 +7,7 @@
     <parent>
         <groupId>org.smooks.examples</groupId>
         <artifactId>smooks-examples-osgi</artifactId>
-        <version>2</version>
+        <version>3-SNAPSHOT</version>
     </parent>
 
     <name>Service-tracker</name>
@@ -72,7 +72,7 @@
                         <Private-Package>org.smooks.examples.osgi.peaberry</Private-Package>
                         <Smooks-Config>${basedir}/smooks-config.xml</Smooks-Config>
                         <Smooks-Input-File>${basedir}/input-message.xml</Smooks-Input-File>
-                        <IncludeResource>src/main/resources/org/smooks/examples/osgi/servicetracker/groovy/Test.groovy</IncludeResource>
+                        <IncludeResource>src/main/resources/org/smooks/examples/osgi/servicetracker/groovy/org.smooks.examples.test.Test.groovy</IncludeResource>
                     </instructions>
                 </configuration>
             </plugin>
